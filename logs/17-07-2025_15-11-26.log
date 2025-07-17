@@ -1,6 +1,0 @@
-[2025-07-17 15:11:27,103: INFO: utils: Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.]
-[2025-07-17 15:11:27,103: INFO: utils: NumExpr defaulting to 8 threads.]
-[2025-07-17 15:11:29,347: INFO: main: Data Ingestion Stage initiated]
-[2025-07-17 15:11:29,451: INFO: main: Data Ingestion Stage completed]
-[2025-07-17 15:11:29,453: INFO: main: Data Validation Stage initiated]
-[2025-07-17 15:11:29,772: INFO: main: Data Validation Stage completed]
