@@ -81,20 +81,25 @@ class DataTransformation:
         return X_train_count, X_val_count, X_test_count
     
     def sentence_transformers_approach(self, X_train_text, X_val_text, X_test_text):
+
+        st_embeddings={}
         
-        st_embeddings = {}
-        
+        model_name_to_short_name = {
+            "all-MiniLM-L6-v2": "mini",
+            "all-mpnet-base-v2": "mpnet",
+            "distilbert-base-nli-stsb-mean-tokens": "distilbert"
+        }
+
         for model_name in self.config.sentence_transformer_models:
             model = SentenceTransformer(model_name)
             
-            X_train_embed = model.encode(X_train_text.tolist(), show_progress_bar=False)
-            X_val_embed = model.encode(X_val_text.tolist(), show_progress_bar=False)
-            X_test_embed = model.encode(X_test_text.tolist(), show_progress_bar=False)
+            X_train_embed = model.encode(X_train_text.tolist())
+            X_val_embed = model.encode(X_val_text.tolist())
+            X_test_embed = model.encode(X_test_text.tolist())
             
-            # Use a clean name for saving (e.g., 'all-MiniLM-L6-v2' -> 'mini_lm_l6_v2')
-            safe_model_name = model_name.replace('/', '_').replace('-', '_').replace('.', '_').lower()
-            
-            st_embeddings[safe_model_name] = (X_train_embed, X_val_embed, X_test_embed)
+            short_name = model_name_to_short_name.get(model_name)
+            if short_name:
+                st_embeddings[short_name] = (X_train_embed, X_val_embed, X_test_embed)
 
         return st_embeddings
             
@@ -114,6 +119,10 @@ class DataTransformation:
             X_val_meta = valid_df.drop(columns=[text_column, 'preservation_score'])
             X_test_meta = test_df.drop(columns=[text_column, 'preservation_score'])
 
+            np.save(os.path.join(self.config.root_dir, 'X_train_meta.npy'), X_train_meta)
+            np.save(os.path.join(self.config.root_dir, 'X_val_meta.npy'), X_val_meta)
+            np.save(os.path.join(self.config.root_dir, 'X_test_meta.npy'), X_test_meta)
+
             y_train = train_df['preservation_score']
             y_val = valid_df['preservation_score']
             y_test = test_df['preservation_score']
@@ -130,10 +139,10 @@ class DataTransformation:
 
             st_embeddings = self.sentence_transformers_approach(X_train_text_cleaned, X_val_text_cleaned, X_test_text_cleaned)
             
-            for model_name_key, (train_embed, val_embed, test_embed) in st_embeddings.items():
-                np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_train_{model_name_key}.npy'), train_embed)
-                np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_val_{model_name_key}.npy'), val_embed)
-                np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_test_{model_name_key}.npy'), test_embed)
+            for short_name, (train_embed, val_embed, test_embed) in st_embeddings.items():
+                np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_train_{short_name}.npy'), train_embed)
+                np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_val_{short_name}.npy'), val_embed)
+                np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_test_{short_name}.npy'), test_embed)
 
             return (
                 X_train_meta, X_val_meta, X_test_meta,

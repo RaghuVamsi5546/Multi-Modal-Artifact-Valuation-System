@@ -1,31 +1,31 @@
-from src.constants import CONFIG_FILE_PATH,SCHEMA_FILE_PATH
-from src.utils.common import read_yaml,create_dictionaries,save_bin,load_bin
+from src.constants import CONFIG_FILE_PATH, SCHEMA_FILE_PATH
+from src.utils.common import read_yaml, create_dictionaries, save_bin, load_bin
 
-from src.entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig
+from src.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, DataPreprocessingConfig
 
 class ConfigurationManager:
-    def __init__(self,config_path=CONFIG_FILE_PATH,schema_path=SCHEMA_FILE_PATH):
-        self.config=read_yaml(config_path)
-        self.schema=read_yaml(schema_path)
+    def __init__(self, config_path=CONFIG_FILE_PATH, schema_path=SCHEMA_FILE_PATH):
+        self.config = read_yaml(config_path)
+        self.schema = read_yaml(schema_path)
         create_dictionaries([self.config.artifacts_root])
 
-    def get_data_ingestion_config(self)-> DataIngestionConfig:
-        config=self.config.data_ingestion
+    def get_data_ingestion_config(self) -> DataIngestionConfig:
+        config = self.config.data_ingestion
         create_dictionaries([config.root_dir])
 
-        data_ingestion_config=DataIngestionConfig(
+        data_ingestion_config = DataIngestionConfig(
             root_dir=config.root_dir,
             local_file=config.local_file
         )
 
         return data_ingestion_config
-    
-    def get_data_validation_config(self)->DataValidationConfig:
-        config=self.config.data_validation
+
+    def get_data_validation_config(self) -> DataValidationConfig:
+        config = self.config.data_validation
         create_dictionaries([config.root_dir])
         self.schema_path = SCHEMA_FILE_PATH
 
-        data_validation_config=DataValidationConfig(
+        data_validation_config = DataValidationConfig(
             root_dir=config.root_dir,
             local_file=config.local_file,
             validation_status_path=config.validation_status_path
@@ -33,7 +33,7 @@ class ConfigurationManager:
 
         return data_validation_config
 
-    def get_data_transformation_config(self)-> DataTransformationConfig:
+    def get_data_transformation_config(self) -> DataTransformationConfig:
         config = self.config.data_transformation
         create_dictionaries([config.root_dir])
         tfidf_ngram_range_value = tuple(config.tfidf_n_gram_range)
@@ -54,3 +54,21 @@ class ConfigurationManager:
         )
 
         return data_transformation_config
+
+    def get_data_preprocessed_config(self) -> DataPreprocessingConfig:
+        config = self.config.data_preprocessing
+        create_dictionaries([config.root_dir])
+        self.schema_path = SCHEMA_FILE_PATH
+
+        data_preprocessed_config = DataPreprocessingConfig(
+            root_dir=config.root_dir,
+            numeric_features=config.numeric_features,
+            categorical_features=config.categorical_features,
+            imputation_strategy_numeric=config.imputation_strategy_numeric,
+            imputation_strategy_categorical=config.imputation_strategy_categorical,
+            scaler_type=config.scaler_type,
+            encoder_type=config.encoder_type,
+            transformed_data_dir=config.transformed_data_dir
+        )
+
+        return data_preprocessed_config

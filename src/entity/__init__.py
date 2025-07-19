@@ -25,3 +25,14 @@ class DataTransformationConfig:
     count_vec_ngram_range: tuple
     sentence_transformer_models: list
     text_preprocessor_artifacts_dir: Path
+
+@dataclass
+class DataPreprocessingConfig:
+    root_dir: Path
+    numeric_features: list
+    categorical_features: list
+    imputation_strategy_numeric: str
+    imputation_strategy_categorical: str
+    scaler_type: str
+    encoder_type: str
+    transformed_data_dir: Path

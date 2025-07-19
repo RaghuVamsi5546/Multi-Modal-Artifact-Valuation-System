@@ -3,6 +3,7 @@ import yaml
 from box.exceptions import BoxValueError
 from src.logging import logging
 import pickle
+import joblib
 
 from ensure import ensure_annotations
 from box import ConfigBox
@@ -31,7 +32,7 @@ def create_dictionaries(path_to_directories,verbose=0):
 def save_bin(data, filename):
     try:
         with open(filename, 'wb') as file:
-            pickle.dump(data, file)
+            joblib.dump(data, file)
     except Exception as e:
         raise e
 
@@ -39,7 +40,7 @@ def save_bin(data, filename):
 def load_bin(filename):
     try:
         with open(filename, 'rb') as file:
-            return pickle.load(file)
+            return joblib.load(file)
     except FileNotFoundError:
         raise FileNotFoundError(f"No such file: {filename}")
     except Exception as e:
