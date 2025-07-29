@@ -3,8 +3,8 @@ from src.pipeline.stage_1_data_ingestion import DataIngestionTrainingPipeline
 from src.pipeline.stage_2_data_validation import DataValidationTrainingPipeline
 from src.pipeline.stage_3_data_transformation import DataTransformationTrainingPipeline
 from src.pipeline.stage_4_data_preprocessing import DataPreprocessingTrainingPipeline
-
-'''STAGE_NAME="Data Ingestion Stage"
+'''
+STAGE_NAME="Data Ingestion Stage"
 
 try:
     logging.info(f"{STAGE_NAME} initiated")
@@ -35,7 +35,8 @@ try:
     logging.info(f"{STAGE_NAME} completed")
 except Exception as e:
     logging.exception(e)
-    raise e'''
+    raise e
+'''
 
 STAGE_NAME="Data Preprocessing Stage"
 

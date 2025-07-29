@@ -8,6 +8,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 import os
+import json
 
 from src.utils.common import *
 from src.entity import DataTransformationConfig
@@ -119,9 +120,15 @@ class DataTransformation:
             X_val_meta = valid_df.drop(columns=[text_column, 'preservation_score'])
             X_test_meta = test_df.drop(columns=[text_column, 'preservation_score'])
 
+            # FIX START: Save column names along with NumPy arrays
+            meta_columns = X_train_meta.columns.tolist()
+            with open(os.path.join(self.config.root_dir, 'meta_columns.json'), 'w') as f:
+                json.dump(meta_columns, f)
+
             np.save(os.path.join(self.config.root_dir, 'X_train_meta.npy'), X_train_meta)
             np.save(os.path.join(self.config.root_dir, 'X_val_meta.npy'), X_val_meta)
             np.save(os.path.join(self.config.root_dir, 'X_test_meta.npy'), X_test_meta)
+            # FIX END
 
             y_train = train_df['preservation_score']
             y_val = valid_df['preservation_score']
