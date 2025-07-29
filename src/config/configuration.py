@@ -1,7 +1,7 @@
 from src.constants import CONFIG_FILE_PATH, SCHEMA_FILE_PATH
 from src.utils.common import read_yaml, create_dictionaries, save_bin, load_bin
 
-from src.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, DataPreprocessingConfig
+from src.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, DataPreprocessingConfig,ModelTrainerConfig,ModelEvaluationConfig
 
 class ConfigurationManager:
     def __init__(self, config_path=CONFIG_FILE_PATH, schema_path=SCHEMA_FILE_PATH):
@@ -72,3 +72,35 @@ class ConfigurationManager:
         )
 
         return data_preprocessed_config
+    
+    def get_model_trainer_config(self) -> ModelTrainerConfig:
+        config = self.config.model_trainer
+        create_dictionaries([config.root_dir])
+
+        model_trainer_config = ModelTrainerConfig(
+            root_dir=config.root_dir,
+            train_data_dir=config.train_data_dir,
+            validation_data_dir=config.validation_data_dir,
+            test_data_dir=config.test_data_dir,
+            preprocessor_path=config.preprocessor_path,
+            text_vectorizer_path=config.text_vectorizer_path,
+            target_column=config.target_column,
+            model_params=config.model_params,
+            metric_file_path=config.metric_file_path,
+            trained_model_dir=config.trained_model_dir
+        )
+
+        return model_trainer_config
+    
+    def get_model_evaluation_config(self) -> ModelEvaluationConfig:
+        config = self.config.model_evaluation
+        create_dictionaries([config.root_dir])
+
+        model_evaluation_config = ModelEvaluationConfig(
+            root_dir=config.root_dir,
+            test_data_dir=config.test_data_dir,
+            trained_model_dir=config.trained_model_dir,
+            metric_file_path=config.metric_file_path
+        )
+
+        return model_evaluation_config

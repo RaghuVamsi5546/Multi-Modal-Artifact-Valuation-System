@@ -36,3 +36,23 @@ class DataPreprocessingConfig:
     scaler_type: str
     encoder_type: str
     transformed_data_dir: Path
+
+@dataclass
+class ModelTrainerConfig:
+    root_dir: Path
+    train_data_dir: Path
+    validation_data_dir: Path
+    test_data_dir: Path
+    preprocessor_path: Path
+    text_vectorizer_path: Path
+    target_column: str
+    model_params: dict 
+    metric_file_path: Path 
+    trained_model_dir: Path
+
+@dataclass
+class ModelEvaluationConfig:
+    root_dir: Path
+    test_data_dir: Path
+    trained_model_dir: Path
+    metric_file_path: Path

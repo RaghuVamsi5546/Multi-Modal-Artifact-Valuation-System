@@ -3,7 +3,9 @@ from src.pipeline.stage_1_data_ingestion import DataIngestionTrainingPipeline
 from src.pipeline.stage_2_data_validation import DataValidationTrainingPipeline
 from src.pipeline.stage_3_data_transformation import DataTransformationTrainingPipeline
 from src.pipeline.stage_4_data_preprocessing import DataPreprocessingTrainingPipeline
-'''
+from src.pipeline.stage_5_model_trainer import ModelTrainerTrainingPipeline
+from src.pipeline.stage_6_model_evaluation import ModelEvaluationTrainingPipeline
+
 STAGE_NAME="Data Ingestion Stage"
 
 try:
@@ -36,7 +38,6 @@ try:
 except Exception as e:
     logging.exception(e)
     raise e
-'''
 
 STAGE_NAME="Data Preprocessing Stage"
 
@@ -48,6 +49,28 @@ try:
     logging.info(f"{STAGE_NAME} initiated")
     data_preprocessing_pipeline=DataPreprocessingTrainingPipeline()
     data_preprocessing_pipeline.initiate_data_preprocessing()
+    logging.info(f"{STAGE_NAME} completed")
+except Exception as e:
+    logging.exception(e)
+    raise e
+
+STAGE_NAME="Model Trainer Stage"
+
+try:
+    logging.info(f"{STAGE_NAME} initiated")
+    model_trainer_pipeline = ModelTrainerTrainingPipeline()
+    model_trainer_pipeline.initiate_model_training()
+    logging.info(f"{STAGE_NAME} completed")
+except Exception as e:
+    logging.exception(e)
+    raise e
+
+STAGE_NAME="Model Evaluation Stage"
+
+try:
+    logging.info(f"{STAGE_NAME} initiated")
+    model_evaluation_pipeline = ModelEvaluationTrainingPipeline()
+    model_evaluation_pipeline.initiate_model_evaluation()
     logging.info(f"{STAGE_NAME} completed")
 except Exception as e:
     logging.exception(e)

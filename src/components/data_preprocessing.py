@@ -18,7 +18,7 @@ class DataPreprocessing:
         self.data_validation = data_validation
         self.data_transformation_config = data_transformation_config
 
-    def initiate_data_preprocess(self, X_train_meta, X_val_meta, X_test_meta):
+    def initiate_data_preprocess(self, X_train_meta, X_val_meta, X_test_meta,y_train, y_val, y_test):
         try:
             numeric_features = self.config.numeric_features
             categorical_features = self.config.categorical_features
@@ -50,32 +50,12 @@ class DataPreprocessing:
             np.save(os.path.join(structured_features_dir, 'X_val_meta_processed.npy'), X_val_meta_processed)
             np.save(os.path.join(structured_features_dir, 'X_test_meta_processed.npy'), X_test_meta_processed)
 
+            np.save(os.path.join(self.config.root_dir, 'y_train.npy'), y_train)
+            np.save(os.path.join(self.config.root_dir, 'y_val.npy'), y_val)
+            np.save(os.path.join(self.config.root_dir, 'y_test.npy'), y_test)
+
             save_bin(preprocessor, os.path.join(structured_features_dir, 'structured_preprocessor.pkl'))
 
-            feature_names = []
-            try:
-                num_features = numeric_features
-                cat_features = preprocessor.named_transformers_['cat']['onehot'].get_feature_names_out(categorical_features)
-                feature_names = list(num_features) + list(cat_features)
-            except:
-                feature_names = []
-
-            feature_info = {
-                'numeric_features': numeric_features,
-                'categorical_features': categorical_features,
-                'feature_names_after_preprocessing': feature_names,
-                'total_features': X_train_meta_processed.shape[1]
-            }
-
-            with open(os.path.join(structured_features_dir, 'feature_info.json'), 'w') as f:
-                json.dump(feature_info, f, indent=2)
-
-            # --- Start of new feature combination logic ---
-
-        
-            X_train_meta_processed = np.load(os.path.join(structured_features_dir, 'X_train_meta_processed.npy'))
-            X_val_meta_processed = np.load(os.path.join(structured_features_dir, 'X_val_meta_processed.npy'))
-            X_test_meta_processed = np.load(os.path.join(structured_features_dir, 'X_test_meta_processed.npy'))
 
             text_features_dir = self.data_transformation_config.text_preprocessor_artifacts_dir
 
@@ -183,73 +163,5 @@ class DataPreprocessing:
                 'distilbert': os.path.join(text_features_dir, 'X_train_distilbert.npy'),
             }
             
-            feature_set_details = {
-                    "Goal1_Combinations": {
-                        "Metadata_plus_TFIDF": {
-                            "description": "Combination of preprocessed numerical and categorical metadata features with TF-IDF text embeddings.",
-                            "train_path": os.path.join(combined_features_dir, 'X_train_goal1_tfidf.npy'),
-                            "validation_path": os.path.join(combined_features_dir, 'X_val_goal1_tfidf.npy'),
-                            "test_path": os.path.join(combined_features_dir, 'X_test_goal1_tfidf.npy')
-                        },
-                        "Metadata_plus_CountVectorizer": {
-                            "description": "Combination of preprocessed numerical and categorical metadata features with Count Vectorizer text embeddings.",
-                            "train_path": os.path.join(combined_features_dir, 'X_train_goal1_count.npy'),
-                            "validation_path": os.path.join(combined_features_dir, 'X_val_goal1_count.npy'),
-                            "test_path": os.path.join(combined_features_dir, 'X_test_goal1_count.npy')
-                        },
-                        "Metadata_plus_MiniLM_Embeddings": {
-                            "description": "Combination of preprocessed numerical and categorical metadata features with 'all-MiniLM-L6-v2' Sentence Transformer embeddings.",
-                            "train_path": os.path.join(combined_features_dir, 'X_train_goal1_mini.npy'),
-                            "validation_path": os.path.join(combined_features_dir, 'X_val_goal1_mini.npy'),
-                            "test_path": os.path.join(combined_features_dir, 'X_test_goal1_mini.npy')
-                        },
-                        "Metadata_plus_MPNet_Embeddings": {
-                            "description": "Combination of preprocessed numerical and categorical metadata features with 'all-mpnet-base-v2' Sentence Transformer embeddings.",
-                            "train_path": os.path.join(combined_features_dir, 'X_train_goal1_mpnet.npy'),
-                            "validation_path": os.path.join(combined_features_dir, 'X_val_goal1_mpnet.npy'),
-                            "test_path": os.path.join(combined_features_dir, 'X_test_goal1_mpnet.npy')
-                        },
-                        "Metadata_plus_DistilBERT_Embeddings": {
-                            "description": "Combination of preprocessed numerical and categorical metadata features with 'distilbert-base-nli-stsb-mean-tokens' Sentence Transformer embeddings.",
-                            "train_path": os.path.join(combined_features_dir, 'X_train_goal1_distilbert.npy'),
-                            "validation_path": os.path.join(combined_features_dir, 'X_val_goal1_distilbert.npy'),
-                            "test_path": os.path.join(combined_features_dir, 'X_test_goal1_distilbert.npy')
-                        }
-                    },
-                    "Goal2_Text_Only_Combinations": {
-                        "TFIDF_Only": {
-                            "description": "Only TF-IDF text embeddings.",
-                            "train_path": os.path.join(text_features_dir, 'X_train_tfidf.npy'),
-                            "validation_path": os.path.join(text_features_dir, 'X_val_tfidf.npy'),
-                            "test_path": os.path.join(text_features_dir, 'X_test_tfidf.npy')
-                        },
-                        "CountVectorizer_Only": {
-                            "description": "Only Count Vectorizer text embeddings.",
-                            "train_path": os.path.join(text_features_dir, 'X_train_count.npy'),
-                            "validation_path": os.path.join(text_features_dir, 'X_val_count.npy'),
-                            "test_path": os.path.join(text_features_dir, 'X_test_count.npy')
-                        },
-                        "MiniLM_Embeddings_Only": {
-                            "description": "Only 'all-MiniLM-L6-v2' Sentence Transformer embeddings.",
-                            "train_path": os.path.join(text_features_dir, 'X_train_mini.npy'),
-                            "validation_path": os.path.join(text_features_dir, 'X_val_mini.npy'),
-                            "test_path": os.path.join(text_features_dir, 'X_test_mini.npy')
-                        },
-                        "MPNet_Embeddings_Only": {
-                            "description": "Only 'all-mpnet-base-v2' Sentence Transformer embeddings.",
-                            "train_path": os.path.join(text_features_dir, 'X_train_mpnet.npy'),
-                            "validation_path": os.path.join(text_features_dir, 'X_val_mpnet.npy'),
-                            "test_path": os.path.join(text_features_dir, 'X_test_mpnet.npy')
-                        },
-                        "DistilBERT_Embeddings_Only": {
-                            "description": "Only 'distilbert-base-nli-stsb-mean-tokens' Sentence Transformer embeddings.",
-                            "train_path": os.path.join(text_features_dir, 'X_train_distilbert.npy'),
-                            "validation_path": os.path.join(text_features_dir, 'X_val_distilbert.npy'),
-                            "test_path": os.path.join(text_features_dir, 'X_test_distilbert.npy')
-                        }
-                    }
-                }
-            with open(os.path.join(self.config.root_dir, 'feature_set_info.json'), 'w') as f:
-                    json.dump(feature_set_details, f, indent=4)
         except Exception as e:
             raise e

@@ -134,6 +134,10 @@ class DataTransformation:
             y_val = valid_df['preservation_score']
             y_test = test_df['preservation_score']
 
+            np.save(os.path.join(self.config.root_dir, 'y_train.npy'), y_train)
+            np.save(os.path.join(self.config.root_dir, 'y_val.npy'), y_val)
+            np.save(os.path.join(self.config.root_dir, 'y_test.npy'), y_test)
+
             X_train_tfidf, X_val_tfidf, X_test_tfidf = self.tfidf_approach(X_train_text_cleaned, X_val_text_cleaned, X_test_text_cleaned)
             np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, 'X_train_tfidf.npy'), X_train_tfidf)
             np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, 'X_val_tfidf.npy'), X_val_tfidf)

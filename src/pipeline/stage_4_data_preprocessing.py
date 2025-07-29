@@ -26,6 +26,10 @@ class DataPreprocessingTrainingPipeline:
             X_val_meta_np   = np.load(os.path.join(data_transformation_config.root_dir, "X_val_meta.npy"), allow_pickle=True)
             X_test_meta_np  = np.load(os.path.join(data_transformation_config.root_dir, "X_test_meta.npy"), allow_pickle=True)
 
+            y_train = np.load(os.path.join(data_transformation_config.root_dir, "y_train.npy"), allow_pickle=True)
+            y_val = np.load(os.path.join(data_transformation_config.root_dir, "y_val.npy"), allow_pickle=True)
+            y_test = np.load(os.path.join(data_transformation_config.root_dir, "y_test.npy"), allow_pickle=True)
+
             # FIX START: Load column names and convert NumPy arrays to DataFrames
             meta_columns_path = os.path.join(data_transformation_config.root_dir, 'meta_columns.json')
             with open(meta_columns_path, 'r') as f:
@@ -52,7 +56,10 @@ class DataPreprocessingTrainingPipeline:
             data_preprocessed.initiate_data_preprocess(
                 X_train_meta=X_train_meta_df, 
                 X_val_meta=X_val_meta_df, 
-                X_test_meta=X_test_meta_df
+                X_test_meta=X_test_meta_df,
+                y_train=y_train, 
+                y_val=y_val, 
+                y_test=y_test
             )
 
         except Exception as e:
