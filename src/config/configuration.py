@@ -1,7 +1,7 @@
 from src.constants import CONFIG_FILE_PATH, SCHEMA_FILE_PATH
 from src.utils.common import read_yaml, create_dictionaries, save_bin, load_bin
 
-from src.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, DataPreprocessingConfig,ModelTrainerConfig,ModelEvaluationConfig
+from src.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, DataPreprocessingConfig,ModelTrainerConfig,ModelEvaluationConfig,MLOpsConfig
 
 class ConfigurationManager:
     def __init__(self, config_path=CONFIG_FILE_PATH, schema_path=SCHEMA_FILE_PATH):
@@ -104,3 +104,14 @@ class ConfigurationManager:
         )
 
         return model_evaluation_config
+    
+    def get_mlops_config(self) -> MLOpsConfig:
+        config = self.config.mlops_config
+        
+        mlops_config = MLOpsConfig(
+            mlflow_uri=config.mlflow_uri,
+            dagshub_user=config.dagshub_user,
+            dagshub_repo=config.dagshub_repo
+        )
+
+        return mlops_config

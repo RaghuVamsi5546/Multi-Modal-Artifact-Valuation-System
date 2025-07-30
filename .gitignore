@@ -3,3 +3,4 @@ research/models/
 config/
 logs/
 artifacts/
+.env

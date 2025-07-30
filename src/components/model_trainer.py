@@ -4,21 +4,23 @@ import os
 import json
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
+import mlflow
+import mlflow.sklearn
 
-# Import models for Goal 1
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 from catboost import CatBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 
-# Import models for Goal 2
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.svm import SVR
 
-from src.logging import logging 
-from src.utils.common import *
-from src.entity import ModelTrainerConfig, DataPreprocessingConfig
+from src.logging import logging
+from src.utils.common import save_bin
+from src.entity import ModelTrainerConfig
+from src.config.configuration import ConfigurationManager
+from src.entity import MLOpsConfig
 
 
 class ModelTrainer:
@@ -27,9 +29,6 @@ class ModelTrainer:
         os.makedirs(self.config.trained_model_dir, exist_ok=True)
 
     def _evaluate_model(self, y_true_val, y_pred_val):
-        """
-        Evaluates a regression model on validation data and returns common metrics.
-        """
         mae = mean_absolute_error(y_true_val, y_pred_val)
         mse = mean_squared_error(y_true_val, y_pred_val)
         rmse = np.sqrt(mse)
@@ -37,11 +36,8 @@ class ModelTrainer:
         return {"mae": mae, "mse": mse, "rmse": rmse, "r2": r2}
 
     def train_goal1_models(self):
-        """
-        Trains and evaluates Goal 1 models using combined features on validation data.
-        Models: XGBoost, LightGBM, CatBoost, MLP, Random Forest.
-        Feature Combinations: Metadata + TF-IDF, Metadata + Count, Metadata + MiniLM, Metadata + MPNet, Metadata + DistilBERT.
-        """
+        logging.info("Starting training for Goal 1 models.")
+        
         y_train = np.load(os.path.join(self.config.train_data_dir, 'y_train.npy'))
         y_val = np.load(os.path.join(self.config.validation_data_dir, 'y_val.npy'))
 
@@ -73,8 +69,8 @@ class ModelTrainer:
         models = {
             "XGBoostRegressor": XGBRegressor(),
             "LightGBMRegressor": LGBMRegressor(),
-            "CatBoostRegressor": CatBoostRegressor(verbose=0), # Suppress verbose output
-            "MLPRegressor": MLPRegressor(max_iter=500, random_state=42), # Increased max_iter for convergence
+            "CatBoostRegressor": CatBoostRegressor(verbose=0),
+            "MLPRegressor": MLPRegressor(max_iter=500, random_state=42),
             "RandomForestRegressor": RandomForestRegressor(random_state=42)
         }
 
@@ -85,7 +81,7 @@ class ModelTrainer:
             X_val = fs_data["val"]
 
             for model_name, model in models.items():
-                logging.info(f"Training Goal 1: {model_name} with {fs_name} features...")
+                logging.info(f"Training Goal 1: {model_name} with {fs_name} features.")
                 try:
                     model.fit(X_train, y_train)
                     y_pred_val = model.predict(X_val)
@@ -94,33 +90,33 @@ class ModelTrainer:
                     model_key = f"Goal1_{model_name}_{fs_name}"
                     all_metrics[model_key] = metrics
 
-                    # Save the trained model
                     model_path = os.path.join(self.config.trained_model_dir, f"{model_key}.pkl")
                     save_bin(model, model_path)
                     logging.info(f"Saved model: {model_path}")
                     logging.info(f"Metrics for {model_key}: {metrics}")
 
+                    mlflow.log_param("goal", "Goal1")
+                    mlflow.log_param("model_name", model_name)
+                    mlflow.log_param("feature_set", fs_name)
+                    mlflow.log_metrics(metrics)
+                    mlflow.log_artifact(local_path=model_path, artifact_path="goal1_models")
+
                 except Exception as e:
+                    logging.error(f"Error training {model_name} with {fs_name} features: {e}")
+                    all_metrics[f"Goal1_{model_name}_{fs_name}"] = {"error": str(e)}
                     raise e
 
-        # Save all metrics to a JSON file
         with open(self.config.metric_file_path, 'w') as f:
             json.dump(all_metrics, f, indent=4)
         logging.info(f"All Goal 1 model metrics saved to {self.config.metric_file_path}")
 
     def train_goal2_models(self):
-        """
-        Trains and evaluates Goal 2 models using text-only features on validation data.
-        Models: Ridge, SVR, XGBoost, LightGBM, CatBoost, MLP.
-        Feature Combinations: TF-IDF, Count, MiniLM, MPNet, DistilBERT.
-        """
-        logging.info("\nStarting training for Goal 2 models...")
+        logging.info("Starting training for Goal 2 models.")
 
-        # Load target variables (only train and validation needed for training and validation checks)
         y_train = np.load(os.path.join(self.config.train_data_dir, 'y_train.npy'))
         y_val = np.load(os.path.join(self.config.validation_data_dir, 'y_val.npy'))
 
-        text_features_dir = self.config.text_vectorizer_path # This path is now directly from ModelTrainerConfig
+        text_features_dir = self.config.text_vectorizer_path
 
         text_feature_sets = {
             "tfidf": {
@@ -161,7 +157,7 @@ class ModelTrainer:
             X_val = fs_data["val"]
 
             for model_name, model in models.items():
-                logging.info(f"Training Goal 2: {model_name} with {fs_name} text features...")
+                logging.info(f"Training Goal 2: {model_name} with {fs_name} text features.")
                 try:
                     model.fit(X_train, y_train)
                     y_pred_val = model.predict(X_val)
@@ -170,17 +166,22 @@ class ModelTrainer:
                     model_key = f"Goal2_{model_name}_{fs_name}"
                     all_metrics[model_key] = metrics
 
-                    # Save the trained model
                     model_path = os.path.join(self.config.trained_model_dir, f"{model_key}.pkl")
                     save_bin(model, model_path)
                     logging.info(f"Saved model: {model_path}")
                     logging.info(f"Metrics for {model_key}: {metrics}")
 
+                    mlflow.log_param("goal", "Goal2")
+                    mlflow.log_param("model_name", model_name)
+                    mlflow.log_param("feature_set", fs_name)
+                    mlflow.log_metrics(metrics)
+                    mlflow.log_artifact(local_path=model_path, artifact_path="goal2_models")
+
                 except Exception as e:
                     logging.error(f"Error training {model_name} with {fs_name} text features: {e}")
                     all_metrics[f"Goal2_{model_name}_{fs_name}"] = {"error": str(e)}
+                    raise e
 
-        # Append Goal 2 metrics to the existing metrics file (or create if not exists)
         if os.path.exists(self.config.metric_file_path):
             with open(self.config.metric_file_path, 'r') as f:
                 existing_metrics = json.load(f)
@@ -194,8 +195,15 @@ class ModelTrainer:
         logging.info(f"All Goal 2 model metrics saved to {self.config.metric_file_path}")
 
     def train_model(self):
-        """
-        Orchestrates the training of models for both Goal 1 and Goal 2.
-        """
-        self.train_goal1_models()
-        self.train_goal2_models()
+        logging.info("Orchestrating model training for both goals.")
+        config_manager = ConfigurationManager()
+        mlops_config = config_manager.get_mlops_config()
+
+        os.environ["MLFLOW_TRACKING_URI"] = mlops_config.mlflow_uri
+        os.environ["MLFLOW_TRACKING_USERNAME"] = mlops_config.dagshub_user
+        os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("DAGSHUB_TOKEN")
+
+        with mlflow.start_run():
+            self.train_goal1_models()
+            self.train_goal2_models()
+        logging.info("Model training orchestration finished.")

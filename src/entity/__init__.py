@@ -56,3 +56,9 @@ class ModelEvaluationConfig:
     test_data_dir: Path
     trained_model_dir: Path
     metric_file_path: Path
+
+@dataclass
+class MLOpsConfig:
+    mlflow_uri: str
+    dagshub_user: str
+    dagshub_repo: str

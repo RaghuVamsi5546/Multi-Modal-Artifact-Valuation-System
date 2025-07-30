@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
 from src.logging import logging
 from src.pipeline.stage_1_data_ingestion import DataIngestionTrainingPipeline
 from src.pipeline.stage_2_data_validation import DataValidationTrainingPipeline
@@ -42,10 +45,6 @@ except Exception as e:
 STAGE_NAME="Data Preprocessing Stage"
 
 try:
-    X_train_meta=None
-    X_val_meta=None
-    X_test_meta=None
-    
     logging.info(f"{STAGE_NAME} initiated")
     data_preprocessing_pipeline=DataPreprocessingTrainingPipeline()
     data_preprocessing_pipeline.initiate_data_preprocessing()

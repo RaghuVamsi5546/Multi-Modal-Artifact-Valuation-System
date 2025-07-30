@@ -1,8 +1,9 @@
-from src.utils.common import *
+import os
+import mlflow
 from src.logging import logging
 from src.config.configuration import ConfigurationManager
-from src.components.model_trainer import ModelTrainer # Import the ModelTrainer class
-from src.entity import ModelTrainerConfig # Import ModelTrainerConfig
+from src.components.model_trainer import ModelTrainer
+from src.entity import ModelTrainerConfig
 
 
 class ModelTrainerTrainingPipeline:
@@ -10,13 +11,19 @@ class ModelTrainerTrainingPipeline:
         pass
 
     def initiate_model_training(self):
+        logging.info("Starting model training pipeline.")
         try:
-            logging.info("Starting model training pipeline...")
             config = ConfigurationManager()
             model_trainer_config = config.get_model_trainer_config()
+            mlops_config = config.get_mlops_config()
 
-            model_trainer = ModelTrainer(config=model_trainer_config)
-            model_trainer.train_model() # This method orchestrates Goal 1 and Goal 2 training
+            os.environ["MLFLOW_TRACKING_URI"] = mlops_config.mlflow_uri
+            os.environ["MLFLOW_TRACKING_USERNAME"] = mlops_config.dagshub_user
+            os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("DAGSHUB_TOKEN")
+
+            with mlflow.start_run():
+                model_trainer = ModelTrainer(config=model_trainer_config)
+                model_trainer.train_model()
 
             logging.info("Model training pipeline completed successfully.")
 

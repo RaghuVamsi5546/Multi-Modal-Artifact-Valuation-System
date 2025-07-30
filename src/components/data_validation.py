@@ -3,6 +3,7 @@ import os
 from src.utils.common import read_yaml
 from src.entity import DataValidationConfig, DataTransformationConfig
 from sklearn.model_selection import train_test_split
+from src.logging import logging
 
 class DataValidation:
     def __init__(self, config: DataValidationConfig, data_transformation_config: DataTransformationConfig, schema_path: str):
@@ -11,6 +12,7 @@ class DataValidation:
         self.schema_path = schema_path
 
     def validate_columns(self):
+        logging.info("Starting data validation.")
         try:
             status = True
             messages = []
@@ -42,8 +44,10 @@ class DataValidation:
 
             with open(self.config.validation_status_path, 'w') as f:
                 f.write(str(status))
+            logging.info(f"Validation status saved to {self.config.validation_status_path}")
 
             if status:
+                logging.info("Data schema validation successful. Splitting data for transformation.")
                 X = df.drop(columns=['preservation_score'])
                 y = df['preservation_score']
 
@@ -69,8 +73,13 @@ class DataValidation:
                 train_df.to_csv(self.data_transformation_config.train_data_path, index=False)
                 valid_df.to_csv(self.data_transformation_config.validation_data_path, index=False)
                 test_df.to_csv(self.data_transformation_config.test_data_path, index=False)
+                logging.info("Train, validation, and test data saved.")
 
                 return status, train_df, valid_df, test_df
+            else:
+                logging.warning(f"Data validation failed. Issues: {messages}")
+                return status, None, None, None
 
         except Exception as e:
+            logging.error(f"Error during data validation: {e}")
             raise e

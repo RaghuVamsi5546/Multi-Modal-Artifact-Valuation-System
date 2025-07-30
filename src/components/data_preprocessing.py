@@ -9,8 +9,9 @@ import os
 import json
 
 from src.utils.common import *
-from src.entity import DataPreprocessingConfig, DataTransformationConfig 
+from src.entity import DataPreprocessingConfig, DataTransformationConfig
 from src.components.data_validation import DataValidation
+from src.logging import logging
 
 class DataPreprocessing:
     def __init__(self, config: DataPreprocessingConfig, data_validation: DataValidation, data_transformation_config: DataTransformationConfig):
@@ -18,7 +19,8 @@ class DataPreprocessing:
         self.data_validation = data_validation
         self.data_transformation_config = data_transformation_config
 
-    def initiate_data_preprocess(self, X_train_meta, X_val_meta, X_test_meta,y_train, y_val, y_test):
+    def initiate_data_preprocess(self, X_train_meta, X_val_meta, X_test_meta, y_train, y_val, y_test):
+        logging.info("Starting data preprocessing.")
         try:
             numeric_features = self.config.numeric_features
             categorical_features = self.config.categorical_features
@@ -39,6 +41,7 @@ class DataPreprocessing:
                     ('cat', categorical_transformer, categorical_features)
                 ])
 
+            logging.info("Applying preprocessing to metadata features.")
             X_train_meta_processed = preprocessor.fit_transform(X_train_meta)
             X_val_meta_processed = preprocessor.transform(X_val_meta)
             X_test_meta_processed = preprocessor.transform(X_test_meta)
@@ -49,16 +52,19 @@ class DataPreprocessing:
             np.save(os.path.join(structured_features_dir, 'X_train_meta_processed.npy'), X_train_meta_processed)
             np.save(os.path.join(structured_features_dir, 'X_val_meta_processed.npy'), X_val_meta_processed)
             np.save(os.path.join(structured_features_dir, 'X_test_meta_processed.npy'), X_test_meta_processed)
+            logging.info("Processed metadata features saved.")
 
             np.save(os.path.join(self.config.root_dir, 'y_train.npy'), y_train)
             np.save(os.path.join(self.config.root_dir, 'y_val.npy'), y_val)
             np.save(os.path.join(self.config.root_dir, 'y_test.npy'), y_test)
+            logging.info("Target arrays (y_train, y_val, y_test) saved.")
 
             save_bin(preprocessor, os.path.join(structured_features_dir, 'structured_preprocessor.pkl'))
-
+            logging.info("Structured data preprocessor saved.")
 
             text_features_dir = self.data_transformation_config.text_preprocessor_artifacts_dir
 
+            logging.info("Loading text features for combination.")
             X_train_tfidf = np.load(os.path.join(text_features_dir, 'X_train_tfidf.npy'))
             X_val_tfidf = np.load(os.path.join(text_features_dir, 'X_val_tfidf.npy'))
             X_test_tfidf = np.load(os.path.join(text_features_dir, 'X_test_tfidf.npy'))
@@ -79,32 +85,27 @@ class DataPreprocessing:
             X_val_distilbert = np.load(os.path.join(text_features_dir, 'X_val_distilbert.npy'))
             X_test_distilbert = np.load(os.path.join(text_features_dir, 'X_test_distilbert.npy'))
 
-
-            # Create directory for combined features within the data_preprocessing's root_dir
             combined_features_dir = os.path.join(self.config.root_dir, 'combined_features')
             os.makedirs(combined_features_dir, exist_ok=True)
+            logging.info(f"Created directory for combined features: {combined_features_dir}")
 
-            # Approach 1: Metadata + TF-IDF
+            logging.info("Combining metadata and text features (Goal 1 approaches).")
             X_train_goal1_tfidf = np.hstack([X_train_meta_processed, X_train_tfidf])
             X_val_goal1_tfidf = np.hstack([X_val_meta_processed, X_val_tfidf])
             X_test_goal1_tfidf = np.hstack([X_test_meta_processed, X_test_tfidf])
 
-            # Approach 2: Metadata + Count Vectorizer
             X_train_goal1_count = np.hstack([X_train_meta_processed, X_train_count])
             X_val_goal1_count = np.hstack([X_val_meta_processed, X_val_count])
             X_test_goal1_count = np.hstack([X_test_meta_processed, X_test_count])
 
-            # Approach 3: Metadata + MiniLM
             X_train_goal1_mini = np.hstack([X_train_meta_processed, X_train_mini])
             X_val_goal1_mini = np.hstack([X_val_meta_processed, X_val_mini])
             X_test_goal1_mini = np.hstack([X_test_meta_processed, X_test_mini])
 
-            # Approach 4: Metadata + MPNet
             X_train_goal1_mpnet = np.hstack([X_train_meta_processed, X_train_mpnet])
             X_val_goal1_mpnet = np.hstack([X_val_meta_processed, X_val_mpnet])
             X_test_goal1_mpnet = np.hstack([X_test_meta_processed, X_test_mpnet])
 
-            # Approach 5: Metadata + DistilBERT
             X_train_goal1_distilbert = np.hstack([X_train_meta_processed, X_train_distilbert])
             X_val_goal1_distilbert = np.hstack([X_val_meta_processed, X_val_distilbert])
             X_test_goal1_distilbert = np.hstack([X_test_meta_processed, X_test_distilbert])
@@ -134,6 +135,7 @@ class DataPreprocessing:
             print(f"  Validation: {X_val_distilbert.shape}")
             print(f"  Test: {X_test_distilbert.shape}")
 
+            logging.info("Saving combined features.")
             np.save(os.path.join(combined_features_dir, 'X_train_goal1_tfidf.npy'), X_train_goal1_tfidf)
             np.save(os.path.join(combined_features_dir, 'X_val_goal1_tfidf.npy'), X_val_goal1_tfidf)
             np.save(os.path.join(combined_features_dir, 'X_test_goal1_tfidf.npy'), X_test_goal1_tfidf)
@@ -154,14 +156,8 @@ class DataPreprocessing:
             np.save(os.path.join(combined_features_dir, 'X_val_goal1_distilbert.npy'), X_val_goal1_distilbert)
             np.save(os.path.join(combined_features_dir, 'X_test_goal1_distilbert.npy'), X_test_goal1_distilbert)
 
+            logging.info("Data preprocessing finished.")
 
-            goal2_features = {
-                'tfidf': os.path.join(text_features_dir, 'X_train_tfidf.npy'),
-                'count': os.path.join(text_features_dir, 'X_train_count.npy'),
-                'mini': os.path.join(text_features_dir, 'X_train_mini.npy'), 
-                'mpnet': os.path.join(text_features_dir, 'X_train_mpnet.npy'),
-                'distilbert': os.path.join(text_features_dir, 'X_train_distilbert.npy'),
-            }
-            
         except Exception as e:
+            logging.error(f"Data preprocessing failed: {e}")
             raise e
