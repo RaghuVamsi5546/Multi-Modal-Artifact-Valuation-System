@@ -5,12 +5,11 @@ from src.config.configuration import ConfigurationManager
 from src.components.model_trainer import ModelTrainer
 from src.entity import ModelTrainerConfig
 
-
 class ModelTrainerTrainingPipeline:
     def __init__(self):
         pass
 
-    def initiate_model_training(self):
+    def initiate_model_training(self) -> None:
         logging.info("Starting model training pipeline.")
         try:
             config = ConfigurationManager()
@@ -21,7 +20,10 @@ class ModelTrainerTrainingPipeline:
             os.environ["MLFLOW_TRACKING_USERNAME"] = mlops_config.dagshub_user
             os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("DAGSHUB_TOKEN")
 
-            with mlflow.start_run():
+            if mlflow.active_run() is not None:
+                mlflow.end_run()
+
+            with mlflow.start_run(run_name="Model_Training_Run"):
                 model_trainer = ModelTrainer(config=model_trainer_config)
                 model_trainer.train_model()
 

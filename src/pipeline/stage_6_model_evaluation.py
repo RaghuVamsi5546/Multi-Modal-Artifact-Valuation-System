@@ -10,7 +10,7 @@ class ModelEvaluationTrainingPipeline:
     def __init__(self):
         pass
 
-    def initiate_model_evaluation(self):
+    def initiate_model_evaluation(self) -> None:
         logging.info("Starting model evaluation pipeline.")
         try:
             config = ConfigurationManager()
@@ -21,7 +21,10 @@ class ModelEvaluationTrainingPipeline:
             os.environ["MLFLOW_TRACKING_USERNAME"] = mlops_config.dagshub_user
             os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("DAGSHUB_TOKEN")
 
-            with mlflow.start_run():
+            if mlflow.active_run() is not None:
+                mlflow.end_run()
+
+            with mlflow.start_run(run_name="Model_Evaluation_Run"):
                 model_evaluation = ModelEvaluation(config=model_evaluation_config)
                 model_evaluation.initiate_model_evaluation()
 

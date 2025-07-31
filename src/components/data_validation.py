@@ -5,6 +5,7 @@ from src.entity import DataValidationConfig, DataTransformationConfig
 from sklearn.model_selection import train_test_split
 from src.logging import logging
 
+
 class DataValidation:
     def __init__(self, config: DataValidationConfig, data_transformation_config: DataTransformationConfig, schema_path: str):
         self.config = config

@@ -24,37 +24,37 @@ class DataTransformation:
     def clean_text(text):
         if pd.isna(text):
             return ""
-        
+
         text = str(text).lower()
         text = re.sub(r'[^a-zA-Z\s]', '', text)
         text = re.sub(r'\s+', ' ', text).strip()
-        
+
         return text
 
     def advanced_clean_text(self, text):
         if pd.isna(text):
             return ""
-        
+
         text = self.clean_text(text)
-        
+
         try:
             tokens = word_tokenize(text)
             stop_words = set(stopwords.words('english'))
             tokens = [token for token in tokens if token not in stop_words and len(token) > 2]
-            
+
             lemmatizer = WordNetLemmatizer()
             tokens = [lemmatizer.lemmatize(token) for token in tokens]
-            
+
             return ' '.join(tokens)
         except Exception:
             return text
-            
+
     def tfidf_approach(self, X_train_text, X_val_text, X_test_text):
         tfidf_vectorizer = TfidfVectorizer(
-            max_features=self.config.tfidf_max_features,  
-            ngram_range=self.config.tfidf_n_gram_range,  
-            min_df=2,  
-            max_df=0.95,  
+            max_features=self.config.tfidf_max_features,
+            ngram_range=self.config.tfidf_n_gram_range,
+            min_df=2,
+            max_df=0.95,
             stop_words='english'
         )
 
@@ -65,14 +65,15 @@ class DataTransformation:
         save_bin(tfidf_vectorizer, os.path.join(self.config.text_preprocessor_artifacts_dir, 'tfidf_vectorizer.pkl'))
 
         return X_train_tfidf, X_val_tfidf, X_test_tfidf
-    
+
     def count_vect_approach(self, X_train_text, X_val_text, X_test_text):
         count_vectorizer = CountVectorizer(
             max_features=self.config.count_vec_max_features,
-            ngram_range=self.config.count_vec_ngram_range,  
+            ngram_range=self.config.count_vec_ngram_range,
             min_df=2,
             max_df=0.9,
-            stop_words='english')
+            stop_words='english'
+        )
 
         X_train_count = count_vectorizer.fit_transform(X_train_text).toarray()
         X_val_count = count_vectorizer.transform(X_val_text).toarray()
@@ -81,11 +82,10 @@ class DataTransformation:
         save_bin(count_vectorizer, os.path.join(self.config.text_preprocessor_artifacts_dir, 'count_vectorizer.pkl'))
 
         return X_train_count, X_val_count, X_test_count
-    
-    def sentence_transformers_approach(self, X_train_text, X_val_text, X_test_text):
 
-        st_embeddings={}
-        
+    def sentence_transformers_approach(self, X_train_text, X_val_text, X_test_text):
+        st_embeddings = {}
+
         model_name_to_short_name = {
             "all-MiniLM-L6-v2": "mini",
             "all-mpnet-base-v2": "mpnet",
@@ -94,17 +94,17 @@ class DataTransformation:
 
         for model_name in self.config.sentence_transformer_models:
             model = SentenceTransformer(model_name)
-            
+
             X_train_embed = model.encode(X_train_text.tolist())
             X_val_embed = model.encode(X_val_text.tolist())
             X_test_embed = model.encode(X_test_text.tolist())
-            
+
             short_name = model_name_to_short_name.get(model_name)
             if short_name:
                 st_embeddings[short_name] = (X_train_embed, X_val_embed, X_test_embed)
 
         return st_embeddings
-            
+
     def initiate_data_transformation(self):
         logging.info("Starting data transformation.")
         try:
@@ -149,7 +149,7 @@ class DataTransformation:
             np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, 'X_test_count.npy'), X_test_count)
 
             st_embeddings = self.sentence_transformers_approach(X_train_text_cleaned, X_val_text_cleaned, X_test_text_cleaned)
-            
+
             for short_name, (train_embed, val_embed, test_embed) in st_embeddings.items():
                 np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_train_{short_name}.npy'), train_embed)
                 np.save(os.path.join(self.config.text_preprocessor_artifacts_dir, f'X_val_{short_name}.npy'), val_embed)

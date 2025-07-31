@@ -3,7 +3,6 @@ import numpy as np
 import os
 import json
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import joblib
 import mlflow
 import mlflow.sklearn
 
@@ -13,7 +12,7 @@ from catboost import CatBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 
-from sklearn.linear_model import Ridge, Lasso
+from sklearn.linear_model import Ridge
 from sklearn.svm import SVR
 
 from src.logging import logging
@@ -21,7 +20,6 @@ from src.utils.common import save_bin
 from src.entity import ModelTrainerConfig
 from src.config.configuration import ConfigurationManager
 from src.entity import MLOpsConfig
-
 
 class ModelTrainer:
     def __init__(self, config: ModelTrainerConfig):
@@ -37,7 +35,7 @@ class ModelTrainer:
 
     def train_goal1_models(self):
         logging.info("Starting training for Goal 1 models.")
-        
+
         y_train = np.load(os.path.join(self.config.train_data_dir, 'y_train.npy'))
         y_val = np.load(os.path.join(self.config.validation_data_dir, 'y_val.npy'))
 
@@ -83,23 +81,24 @@ class ModelTrainer:
             for model_name, model in models.items():
                 logging.info(f"Training Goal 1: {model_name} with {fs_name} features.")
                 try:
-                    model.fit(X_train, y_train)
-                    y_pred_val = model.predict(X_val)
-                    metrics = self._evaluate_model(y_val, y_pred_val)
+                    with mlflow.start_run(nested=True):
+                        model.fit(X_train, y_train)
+                        y_pred_val = model.predict(X_val)
+                        metrics = self._evaluate_model(y_val, y_pred_val)
 
-                    model_key = f"Goal1_{model_name}_{fs_name}"
-                    all_metrics[model_key] = metrics
+                        model_key = f"Goal1_{model_name}_{fs_name}"
+                        all_metrics[model_key] = metrics
 
-                    model_path = os.path.join(self.config.trained_model_dir, f"{model_key}.pkl")
-                    save_bin(model, model_path)
-                    logging.info(f"Saved model: {model_path}")
-                    logging.info(f"Metrics for {model_key}: {metrics}")
+                        model_path = os.path.join(self.config.trained_model_dir, f"{model_key}.pkl")
+                        save_bin(model, model_path)
+                        logging.info(f"Saved model: {model_path}")
+                        logging.info(f"Metrics for {model_key}: {metrics}")
 
-                    mlflow.log_param("goal", "Goal1")
-                    mlflow.log_param("model_name", model_name)
-                    mlflow.log_param("feature_set", fs_name)
-                    mlflow.log_metrics(metrics)
-                    mlflow.log_artifact(local_path=model_path, artifact_path="goal1_models")
+                        mlflow.log_param("goal", "Goal1")
+                        mlflow.log_param("model_name", model_name)
+                        mlflow.log_param("feature_set", fs_name)
+                        mlflow.log_metrics(metrics)
+                        mlflow.log_artifact(local_path=model_path, artifact_path="goal1_models")
 
                 except Exception as e:
                     logging.error(f"Error training {model_name} with {fs_name} features: {e}")
@@ -159,23 +158,24 @@ class ModelTrainer:
             for model_name, model in models.items():
                 logging.info(f"Training Goal 2: {model_name} with {fs_name} text features.")
                 try:
-                    model.fit(X_train, y_train)
-                    y_pred_val = model.predict(X_val)
-                    metrics = self._evaluate_model(y_val, y_pred_val)
+                    with mlflow.start_run(nested=True):
+                        model.fit(X_train, y_train)
+                        y_pred_val = model.predict(X_val)
+                        metrics = self._evaluate_model(y_val, y_pred_val)
 
-                    model_key = f"Goal2_{model_name}_{fs_name}"
-                    all_metrics[model_key] = metrics
+                        model_key = f"Goal2_{model_name}_{fs_name}"
+                        all_metrics[model_key] = metrics
 
-                    model_path = os.path.join(self.config.trained_model_dir, f"{model_key}.pkl")
-                    save_bin(model, model_path)
-                    logging.info(f"Saved model: {model_path}")
-                    logging.info(f"Metrics for {model_key}: {metrics}")
+                        model_path = os.path.join(self.config.trained_model_dir, f"{model_key}.pkl")
+                        save_bin(model, model_path)
+                        logging.info(f"Saved model: {model_path}")
+                        logging.info(f"Metrics for {model_key}: {metrics}")
 
-                    mlflow.log_param("goal", "Goal2")
-                    mlflow.log_param("model_name", model_name)
-                    mlflow.log_param("feature_set", fs_name)
-                    mlflow.log_metrics(metrics)
-                    mlflow.log_artifact(local_path=model_path, artifact_path="goal2_models")
+                        mlflow.log_param("goal", "Goal2")
+                        mlflow.log_param("model_name", model_name)
+                        mlflow.log_param("feature_set", fs_name)
+                        mlflow.log_metrics(metrics)
+                        mlflow.log_artifact(local_path=model_path, artifact_path="goal2_models")
 
                 except Exception as e:
                     logging.error(f"Error training {model_name} with {fs_name} text features: {e}")
@@ -196,14 +196,6 @@ class ModelTrainer:
 
     def train_model(self):
         logging.info("Orchestrating model training for both goals.")
-        config_manager = ConfigurationManager()
-        mlops_config = config_manager.get_mlops_config()
-
-        os.environ["MLFLOW_TRACKING_URI"] = mlops_config.mlflow_uri
-        os.environ["MLFLOW_TRACKING_USERNAME"] = mlops_config.dagshub_user
-        os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("DAGSHUB_TOKEN")
-
-        with mlflow.start_run():
-            self.train_goal1_models()
-            self.train_goal2_models()
+        self.train_goal1_models()
+        self.train_goal2_models()
         logging.info("Model training orchestration finished.")

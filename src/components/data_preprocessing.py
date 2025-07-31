@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-import joblib
 import os
 import json
 
@@ -134,27 +133,6 @@ class DataPreprocessing:
             print(f"  Train: {X_train_distilbert.shape}")
             print(f"  Validation: {X_val_distilbert.shape}")
             print(f"  Test: {X_test_distilbert.shape}")
-
-            logging.info("Saving combined features.")
-            np.save(os.path.join(combined_features_dir, 'X_train_goal1_tfidf.npy'), X_train_goal1_tfidf)
-            np.save(os.path.join(combined_features_dir, 'X_val_goal1_tfidf.npy'), X_val_goal1_tfidf)
-            np.save(os.path.join(combined_features_dir, 'X_test_goal1_tfidf.npy'), X_test_goal1_tfidf)
-
-            np.save(os.path.join(combined_features_dir, 'X_train_goal1_count.npy'), X_train_goal1_count)
-            np.save(os.path.join(combined_features_dir, 'X_val_goal1_count.npy'), X_val_goal1_count)
-            np.save(os.path.join(combined_features_dir, 'X_test_goal1_count.npy'), X_test_goal1_count)
-
-            np.save(os.path.join(combined_features_dir, 'X_train_goal1_mini.npy'), X_train_goal1_mini)
-            np.save(os.path.join(combined_features_dir, 'X_val_goal1_mini.npy'), X_val_goal1_mini)
-            np.save(os.path.join(combined_features_dir, 'X_test_goal1_mini.npy'), X_test_goal1_mini)
-
-            np.save(os.path.join(combined_features_dir, 'X_train_goal1_mpnet.npy'), X_train_goal1_mpnet)
-            np.save(os.path.join(combined_features_dir, 'X_val_goal1_mpnet.npy'), X_val_goal1_mpnet)
-            np.save(os.path.join(combined_features_dir, 'X_test_goal1_mpnet.npy'), X_test_goal1_mpnet)
-
-            np.save(os.path.join(combined_features_dir, 'X_train_goal1_distilbert.npy'), X_train_goal1_distilbert)
-            np.save(os.path.join(combined_features_dir, 'X_val_goal1_distilbert.npy'), X_val_goal1_distilbert)
-            np.save(os.path.join(combined_features_dir, 'X_test_goal1_distilbert.npy'), X_test_goal1_distilbert)
 
             logging.info("Data preprocessing finished.")
 

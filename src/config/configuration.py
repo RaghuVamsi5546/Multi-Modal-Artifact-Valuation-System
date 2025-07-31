@@ -7,6 +7,7 @@ class ConfigurationManager:
     def __init__(self, config_path=CONFIG_FILE_PATH, schema_path=SCHEMA_FILE_PATH):
         self.config = read_yaml(config_path)
         self.schema = read_yaml(schema_path)
+        self.schema_path = schema_path
         create_dictionaries([self.config.artifacts_root])
 
     def get_data_ingestion_config(self) -> DataIngestionConfig:
@@ -15,22 +16,19 @@ class ConfigurationManager:
 
         data_ingestion_config = DataIngestionConfig(
             root_dir=config.root_dir,
-            local_file=config.local_file
+            local_file=config.local_file,
         )
-
         return data_ingestion_config
 
     def get_data_validation_config(self) -> DataValidationConfig:
         config = self.config.data_validation
         create_dictionaries([config.root_dir])
-        self.schema_path = SCHEMA_FILE_PATH
 
         data_validation_config = DataValidationConfig(
             root_dir=config.root_dir,
             local_file=config.local_file,
-            validation_status_path=config.validation_status_path
+            validation_status_path=config.validation_status_path,
         )
-
         return data_validation_config
 
     def get_data_transformation_config(self) -> DataTransformationConfig:
@@ -50,15 +48,13 @@ class ConfigurationManager:
             count_vec_max_features=config.count_vec_max_features,
             count_vec_ngram_range=count_vec_ngram_range_value,
             sentence_transformer_models=config.sentence_transformer_models,
-            text_preprocessor_artifacts_dir=config.text_preprocessor_artifacts_dir
+            text_preprocessor_artifacts_dir=config.text_preprocessor_artifacts_dir,
         )
-
         return data_transformation_config
 
     def get_data_preprocessed_config(self) -> DataPreprocessingConfig:
         config = self.config.data_preprocessing
         create_dictionaries([config.root_dir])
-        self.schema_path = SCHEMA_FILE_PATH
 
         data_preprocessed_config = DataPreprocessingConfig(
             root_dir=config.root_dir,
@@ -68,11 +64,10 @@ class ConfigurationManager:
             imputation_strategy_categorical=config.imputation_strategy_categorical,
             scaler_type=config.scaler_type,
             encoder_type=config.encoder_type,
-            transformed_data_dir=config.transformed_data_dir
+            transformed_data_dir=config.transformed_data_dir,
         )
-
         return data_preprocessed_config
-    
+
     def get_model_trainer_config(self) -> ModelTrainerConfig:
         config = self.config.model_trainer
         create_dictionaries([config.root_dir])
@@ -87,11 +82,10 @@ class ConfigurationManager:
             target_column=config.target_column,
             model_params=config.model_params,
             metric_file_path=config.metric_file_path,
-            trained_model_dir=config.trained_model_dir
+            trained_model_dir=config.trained_model_dir,
         )
-
         return model_trainer_config
-    
+
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
         config = self.config.model_evaluation
         create_dictionaries([config.root_dir])
@@ -100,18 +94,17 @@ class ConfigurationManager:
             root_dir=config.root_dir,
             test_data_dir=config.test_data_dir,
             trained_model_dir=config.trained_model_dir,
-            metric_file_path=config.metric_file_path
+            metric_file_path=config.metric_file_path,
+            text_vectorizer_path=config.text_vectorizer_path
         )
-
         return model_evaluation_config
-    
+
     def get_mlops_config(self) -> MLOpsConfig:
         config = self.config.mlops_config
-        
+
         mlops_config = MLOpsConfig(
             mlflow_uri=config.mlflow_uri,
             dagshub_user=config.dagshub_user,
-            dagshub_repo=config.dagshub_repo
+            dagshub_repo=config.dagshub_repo,
         )
-
         return mlops_config

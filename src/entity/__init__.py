@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List, Tuple, Dict
 
 @dataclass
 class DataIngestionConfig:
@@ -20,17 +21,17 @@ class DataTransformationConfig:
     test_data_path: Path
     text_features_column: str
     tfidf_max_features: int
-    tfidf_n_gram_range: tuple
+    tfidf_n_gram_range: Tuple[int, int]
     count_vec_max_features: int
-    count_vec_ngram_range: tuple
-    sentence_transformer_models: list
+    count_vec_ngram_range: Tuple[int, int]
+    sentence_transformer_models: List[str]
     text_preprocessor_artifacts_dir: Path
 
 @dataclass
 class DataPreprocessingConfig:
     root_dir: Path
-    numeric_features: list
-    categorical_features: list
+    numeric_features: List[str]
+    categorical_features: List[str]
     imputation_strategy_numeric: str
     imputation_strategy_categorical: str
     scaler_type: str
@@ -46,8 +47,8 @@ class ModelTrainerConfig:
     preprocessor_path: Path
     text_vectorizer_path: Path
     target_column: str
-    model_params: dict 
-    metric_file_path: Path 
+    model_params: Dict
+    metric_file_path: Path
     trained_model_dir: Path
 
 @dataclass
@@ -56,6 +57,7 @@ class ModelEvaluationConfig:
     test_data_dir: Path
     trained_model_dir: Path
     metric_file_path: Path
+    text_vectorizer_path: Path
 
 @dataclass
 class MLOpsConfig:

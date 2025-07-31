@@ -29,8 +29,7 @@ class DataPreprocessingTrainingPipeline:
             os.environ["MLFLOW_TRACKING_USERNAME"] = mlops_config.dagshub_user
             os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("DAGSHUB_TOKEN")
 
-            with mlflow.start_run():
-                # Execute Data Transformation to get the necessary data
+            with mlflow.start_run(run_name="Data_Preprocessing_Run"):
                 (
                     X_train_meta_np, X_val_meta_np, X_test_meta_np,
                     _, _, _,
@@ -76,11 +75,25 @@ class DataPreprocessingTrainingPipeline:
                 mlflow.log_param("scaler_type", data_preprocessed_config.scaler_type)
                 mlflow.log_param("encoder_type", data_preprocessed_config.encoder_type)
 
-                mlflow.log_artifact(local_path=str(os.path.join(data_preprocessed_config.root_dir, 'structured_features')), artifact_path="structured_features_artifacts")
-                mlflow.log_artifact(local_path=str(os.path.join(data_preprocessed_config.root_dir, 'combined_features')), artifact_path="combined_features_artifacts")
-                mlflow.log_artifact(local_path=str(os.path.join(data_preprocessed_config.root_dir, 'y_train.npy')), artifact_path="target_arrays")
-                mlflow.log_artifact(local_path=str(os.path.join(data_preprocessed_config.root_dir, 'y_val.npy')), artifact_path="target_arrays")
-                mlflow.log_artifact(local_path=str(os.path.join(data_preprocessed_config.root_dir, 'y_test.npy')), artifact_path="target_arrays")
+                structured_features_dir = os.path.join(data_preprocessed_config.root_dir, 'structured_features')
+                combined_features_dir = os.path.join(data_preprocessed_config.root_dir, 'combined_features')
+
+                if os.path.exists(structured_features_dir):
+                    mlflow.log_artifact(local_path=structured_features_dir, artifact_path="structured_features_artifacts")
+                else:
+                    logging.warning(f"Structured features directory not found: {structured_features_dir}")
+
+                if os.path.exists(combined_features_dir):
+                    mlflow.log_artifact(local_path=combined_features_dir, artifact_path="combined_features_artifacts")
+                else:
+                    logging.warning(f"Combined features directory not found: {combined_features_dir}")
+
+                for target_file in ['y_train.npy', 'y_val.npy', 'y_test.npy']:
+                    target_path = os.path.join(data_preprocessed_config.root_dir, target_file)
+                    if os.path.exists(target_path):
+                        mlflow.log_artifact(local_path=target_path, artifact_path="target_arrays")
+                    else:
+                        logging.warning(f"Target array file not found: {target_path}")
 
             logging.info("Data Preprocessing pipeline finished.")
         except Exception as e:
