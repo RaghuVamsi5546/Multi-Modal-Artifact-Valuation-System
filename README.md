@@ -17,23 +17,34 @@ This project implements a modular, end-to-end ML workflow with:
 ---
 
 ## ⚙️ Project Structure
-
-artifacts/
-├── data_ingestion/
-├── data_validation/
-├── data_transformation/
-├── data_preprocessed/
-├── model_trainer/
-└── model_evaluation/
-src/
-├── components/
-├── entity/
-├── logging/
-├── pipeline/
-├── utils/
-└── config/
-main.py
-config.yaml
+```
+├── .github/
+│   └── workflows/
+├── artifacts/
+│   ├── data_ingestion/
+│   ├── data_preprocessed/
+│   ├── data_transformation/
+│   ├── data_validation/
+│   ├── model_evaluation/
+│   └── model_trainer/
+├── catboost_info/
+│   ├── learn/
+│   └── tmp/
+├── config/
+├── data/
+│   └── Images/
+├── logs/
+├── research/
+│   └── models/
+└── src/
+    ├── components/
+    ├── config/
+    ├── constants/
+    ├── entity/
+    ├── logging/
+    ├── pipeline/
+    └── utils/
+```
 
 
 ---
