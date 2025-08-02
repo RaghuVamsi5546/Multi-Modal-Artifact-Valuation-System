@@ -80,13 +80,13 @@ Open issues or PRs for improvements, new model/feature support, or integrating m
 
 ## 📄 License
 
-[MIT](LICENSE) © 2025 <Your Name>
+[MIT](LICENSE) © 2025 <Your Raghu Vamsi>
 
 ---
 
 ## 📫 Contact
 
-For help or collaboration, open a GitHub issue or contact: <your.email@example.com>
+For help or collaboration, open a GitHub issue or contact: <raghuvamsibolem@gmail.com>
 
 ---
 
